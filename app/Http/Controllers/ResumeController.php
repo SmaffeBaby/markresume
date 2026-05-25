@@ -21,7 +21,7 @@ class ResumeController extends Controller
         }
 
         return Inertia::render('Dashboard', [
-            'blocks' => $user->resumeBlocks()->get(),
+            'blocks' => $this->localizedBlocks($user->resumeBlocks()->get()),
             'publicUrl' => route('resume.public'),
         ]);
     }
@@ -33,7 +33,11 @@ class ResumeController extends Controller
             'blocks.*.id' => ['nullable', 'integer'],
             'blocks.*.type' => ['required', 'string', 'in:summary,skills,experience,projects,education,custom'],
             'blocks.*.title' => ['required', 'string', 'max:120'],
+            'blocks.*.title_en' => ['required', 'string', 'max:120'],
+            'blocks.*.title_ru' => ['required', 'string', 'max:120'],
             'blocks.*.content' => ['required', 'array'],
+            'blocks.*.content_en' => ['required', 'array'],
+            'blocks.*.content_ru' => ['required', 'array'],
             'blocks.*.is_visible' => ['required', 'boolean'],
         ]);
 
@@ -54,8 +58,12 @@ class ResumeController extends Controller
                     [
                         'user_id' => $request->user()->id,
                         'type' => $block['type'],
-                        'title' => $block['title'],
-                        'content' => $block['content'],
+                        'title' => $block['title_en'],
+                        'title_en' => $block['title_en'],
+                        'title_ru' => $block['title_ru'],
+                        'content' => $block['content_en'],
+                        'content_en' => $block['content_en'],
+                        'content_ru' => $block['content_ru'],
                         'position' => $position,
                         'is_visible' => $block['is_visible'],
                     ],
@@ -71,7 +79,25 @@ class ResumeController extends Controller
         $user = User::query()->whereHas('resumeBlocks')->oldest()->first();
 
         return Inertia::render('PublicResume', [
-            'blocks' => $user?->resumeBlocks()->where('is_visible', true)->get() ?? [],
+            'blocks' => $user
+                ? $this->localizedBlocks($user->resumeBlocks()->where('is_visible', true)->get())
+                : [],
+        ]);
+    }
+
+    private function localizedBlocks($blocks)
+    {
+        return $blocks->map(fn (ResumeBlock $block): array => [
+            'id' => $block->id,
+            'type' => $block->type,
+            'title' => $block->title,
+            'title_en' => $block->title_en ?? $block->title,
+            'title_ru' => $block->title_ru ?? $block->title,
+            'content' => $block->content,
+            'content_en' => $block->content_en ?? $block->content,
+            'content_ru' => $block->content_ru ?? $block->content,
+            'position' => $block->position,
+            'is_visible' => $block->is_visible,
         ]);
     }
 
@@ -81,14 +107,40 @@ class ResumeController extends Controller
             [
                 'type' => 'summary',
                 'title' => 'Summary',
+                'title_en' => 'Summary',
+                'title_ru' => 'О себе',
                 'content' => [
                     'text' => 'Senior frontend-heavy fullstack engineer with 4+ years of commercial experience building production SPA/SSR products, API-driven dashboards, CRM systems, e-commerce automation, sports analytics platforms, and legacy migration initiatives.',
+                ],
+                'content_en' => [
+                    'text' => 'Senior frontend-heavy fullstack engineer with 4+ years of commercial experience building production SPA/SSR products, API-driven dashboards, CRM systems, e-commerce automation, sports analytics platforms, and legacy migration initiatives.',
+                ],
+                'content_ru' => [
+                    'text' => 'Senior frontend-heavy fullstack engineer с 4+ годами коммерческого опыта в разработке production SPA/SSR продуктов, API-driven dashboards, CRM-систем, e-commerce automation, sports analytics platforms и legacy migration initiatives.',
                 ],
             ],
             [
                 'type' => 'skills',
                 'title' => 'Skills',
+                'title_en' => 'Skills',
+                'title_ru' => 'Навыки',
                 'content' => [
+                    'items' => [
+                        ['label' => 'Frontend', 'value' => 'React, Vue.js, TypeScript, TailwindCSS'],
+                        ['label' => 'State & Data', 'value' => 'Zustand, Pinia, TanStack Query'],
+                        ['label' => 'Backend', 'value' => 'Express.js, FastAPI, PHP, Laravel'],
+                        ['label' => 'Databases', 'value' => 'PostgreSQL, Supabase, MySQL, Redis, SQLite'],
+                    ],
+                ],
+                'content_en' => [
+                    'items' => [
+                        ['label' => 'Frontend', 'value' => 'React, Vue.js, TypeScript, TailwindCSS'],
+                        ['label' => 'State & Data', 'value' => 'Zustand, Pinia, TanStack Query'],
+                        ['label' => 'Backend', 'value' => 'Express.js, FastAPI, PHP, Laravel'],
+                        ['label' => 'Databases', 'value' => 'PostgreSQL, Supabase, MySQL, Redis, SQLite'],
+                    ],
+                ],
+                'content_ru' => [
                     'items' => [
                         ['label' => 'Frontend', 'value' => 'React, Vue.js, TypeScript, TailwindCSS'],
                         ['label' => 'State & Data', 'value' => 'Zustand, Pinia, TanStack Query'],
@@ -100,6 +152,8 @@ class ResumeController extends Controller
             [
                 'type' => 'experience',
                 'title' => 'Experience',
+                'title_en' => 'Experience',
+                'title_ru' => 'Опыт',
                 'content' => [
                     'items' => [
                         [
@@ -158,6 +212,8 @@ class ResumeController extends Controller
             [
                 'type' => 'projects',
                 'title' => 'Selected Projects',
+                'title_en' => 'Selected Projects',
+                'title_ru' => 'Избранные проекты',
                 'content' => [
                     'items' => [
                         ['label' => 'NBA Analytics Platform', 'value' => 'Vue sports analytics product with Express + FastAPI data services, Supabase/PostgreSQL social features, cached statistics, and Dockerized deployment.'],
@@ -168,6 +224,8 @@ class ResumeController extends Controller
             [
                 'type' => 'education',
                 'title' => 'Education',
+                'title_en' => 'Education',
+                'title_ru' => 'Образование',
                 'content' => [
                     'text' => 'St. Petersburg, Admiral S.O. Makarov State University of Maritime and River Fleet, Applied Informatics (2020-2024)',
                 ],
@@ -177,6 +235,10 @@ class ResumeController extends Controller
         foreach ($blocks as $position => $block) {
             $user->resumeBlocks()->create([
                 ...$block,
+                'title_en' => $block['title_en'] ?? $block['title'],
+                'title_ru' => $block['title_ru'] ?? $block['title'],
+                'content_en' => $block['content_en'] ?? $block['content'],
+                'content_ru' => $block['content_ru'] ?? $block['content'],
                 'position' => $position,
                 'is_visible' => true,
             ]);

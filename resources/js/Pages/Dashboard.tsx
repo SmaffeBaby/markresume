@@ -4,6 +4,7 @@ import {
     KeyValueItem,
     ResumeBlock,
     ResumeBlockType,
+    ResumeLanguage,
 } from '@/types/resume';
 import { Head, router, usePage } from '@inertiajs/react';
 import {
@@ -20,6 +21,7 @@ import {
     Eye,
     EyeOff,
     GripVertical,
+    Languages,
     Plus,
     Save,
     Trash2,
@@ -35,11 +37,20 @@ const blockTypes: Array<{ value: ResumeBlockType; label: string }> = [
     { value: 'custom', label: 'Custom' },
 ];
 
+const languages: Array<{ value: ResumeLanguage; label: string; hint: string }> = [
+    { value: 'en', label: 'EN', hint: 'English version' },
+    { value: 'ru', label: 'RU', hint: 'Russian version' },
+];
+
 const emptyBlock = (): ResumeBlock => ({
     id: null,
     type: 'custom',
     title: 'New block',
+    title_en: 'New block',
+    title_ru: 'Новый блок',
     content: { text: '' },
+    content_en: { text: '' },
+    content_ru: { text: '' },
     position: 0,
     is_visible: true,
 });
@@ -59,6 +70,18 @@ const emptyExperienceItem = (): ExperienceItem => ({
     bullets: [''],
 });
 
+const titleKey = (language: ResumeLanguage) =>
+    language === 'en' ? 'title_en' : 'title_ru';
+
+const contentKey = (language: ResumeLanguage) =>
+    language === 'en' ? 'content_en' : 'content_ru';
+
+const blockTitle = (block: ResumeBlock, language: ResumeLanguage) =>
+    block[titleKey(language)] || block.title;
+
+const blockContent = (block: ResumeBlock, language: ResumeLanguage) =>
+    block[contentKey(language)] ?? block.content;
+
 type DashboardProps = {
     blocks: ResumeBlock[];
     publicUrl: string;
@@ -69,8 +92,17 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
         flash?: { status?: string };
     };
     const [items, setItems] = useState<ResumeBlock[]>(
-        blocks.map((block, position) => ({ ...block, position })),
+        blocks.map((block, position) => ({
+            ...block,
+            title_en: block.title_en ?? block.title,
+            title_ru: block.title_ru ?? block.title,
+            content_en: block.content_en ?? block.content,
+            content_ru: block.content_ru ?? block.content,
+            position,
+        })),
     );
+    const [activeLanguage, setActiveLanguage] =
+        useState<ResumeLanguage>('en');
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
 
     const visibleCount = useMemo(
@@ -86,11 +118,44 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
         );
     };
 
+    const updateLocalizedTitle = (index: number, title: string) => {
+        const key = titleKey(activeLanguage);
+
+        setItems((current) =>
+            current.map((block, blockIndex) =>
+                blockIndex === index
+                    ? { ...block, [key]: title, title: block.title_en }
+                    : block,
+            ),
+        );
+    };
+
+    const updateLocalizedContent = (
+        index: number,
+        content: ResumeBlock['content'],
+    ) => {
+        const key = contentKey(activeLanguage);
+
+        setItems((current) =>
+            current.map((block, blockIndex) =>
+                blockIndex === index
+                    ? { ...block, [key]: content, content: block.content_en }
+                    : block,
+            ),
+        );
+    };
+
     const updateText = (index: number, text: string) => {
         setItems((current) =>
             current.map((block, blockIndex) =>
                 blockIndex === index
-                    ? { ...block, content: { ...block.content, text } }
+                    ? {
+                          ...block,
+                          [contentKey(activeLanguage)]: {
+                              ...blockContent(block, activeLanguage),
+                              text,
+                          },
+                      }
                     : block,
             ),
         );
@@ -100,25 +165,21 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
         index: number,
         nextItems: Array<KeyValueItem | ExperienceItem>,
     ) => {
-        setItems((current) =>
-            current.map((block, blockIndex) =>
-                blockIndex === index
-                    ? {
-                          ...block,
-                          content: { ...block.content, items: nextItems },
-                      }
-                    : block,
-            ),
-        );
+        updateLocalizedContent(index, {
+            ...blockContent(items[index], activeLanguage),
+            items: nextItems,
+        });
     };
 
     const keyValueItems = (block: ResumeBlock): KeyValueItem[] =>
-        (block.content.items ?? []).filter(
+        (blockContent(block, activeLanguage).items ?? []).filter(
             (item): item is KeyValueItem => !isExperienceItem(item),
         );
 
     const experienceItems = (block: ResumeBlock): ExperienceItem[] =>
-        (block.content.items ?? []).filter(isExperienceItem);
+        (blockContent(block, activeLanguage).items ?? []).filter(
+            isExperienceItem,
+        );
 
     const updateKeyValueItem = (
         blockIndex: number,
@@ -283,6 +344,8 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
             {
                 blocks: items.map((block, position) => ({
                     ...block,
+                    title: block.title_en,
+                    content: block.content_en,
                     position,
                 })),
             },
@@ -302,7 +365,30 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                             {visibleCount} visible blocks
                         </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <div className="inline-flex items-center gap-1 rounded-md border border-gray-200 bg-white p-1">
+                            <Languages className="ml-2 h-4 w-4 text-gray-500" />
+                            {languages.map((language) => (
+                                <button
+                                    aria-pressed={
+                                        activeLanguage === language.value
+                                    }
+                                    className={`rounded px-3 py-1.5 text-sm font-semibold transition ${
+                                        activeLanguage === language.value
+                                            ? 'bg-gray-900 text-white shadow-sm'
+                                            : 'text-gray-600 hover:bg-gray-100'
+                                    }`}
+                                    key={language.value}
+                                    onClick={() =>
+                                        setActiveLanguage(language.value)
+                                    }
+                                    title={language.hint}
+                                    type="button"
+                                >
+                                    {language.label}
+                                </button>
+                            ))}
+                        </div>
                         <a
                             className="inline-flex items-center rounded-lg border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100"
                             href={publicUrl}
@@ -326,8 +412,12 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                 <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
                     <div className="mb-5 flex items-center justify-between rounded-md border border-gray-200 bg-white p-4">
                         <div className="text-sm text-gray-600">
-                            Blocks are saved to the database and rendered on the
-                            public resume page.
+                            Editing{' '}
+                            <span className="font-semibold text-gray-900">
+                                {activeLanguage.toUpperCase()}
+                            </span>{' '}
+                            content. Switch language to edit the second public
+                            version.
                         </div>
                         {flash?.status === 'resume-saved' && (
                             <Badge color="success">Saved</Badge>
@@ -388,16 +478,22 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                                                     </Select>
                                                 </div>
                                                 <div>
-                                                    <Label>Title</Label>
+                                                    <Label>
+                                                        Title{' '}
+                                                        {activeLanguage.toUpperCase()}
+                                                    </Label>
                                                     <TextInput
                                                         className="mt-1"
-                                                        value={block.title}
+                                                        value={blockTitle(
+                                                            block,
+                                                            activeLanguage,
+                                                        )}
                                                         onChange={(event) =>
-                                                            updateBlock(index, {
-                                                                title: event
-                                                                    .target
+                                                            updateLocalizedTitle(
+                                                                index,
+                                                                event.target
                                                                     .value,
-                                                            })
+                                                            )
                                                         }
                                                     />
                                                 </div>
@@ -445,7 +541,10 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                                     </div>
 
                                     <div>
-                                        <Label>Content</Label>
+                                        <Label>
+                                            Content{' '}
+                                            {activeLanguage.toUpperCase()}
+                                        </Label>
                                         <Textarea
                                             className="mt-1 font-mono text-sm"
                                             rows={
@@ -453,7 +552,12 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                                                     ? 3
                                                     : 5
                                             }
-                                            value={block.content.text ?? ''}
+                                            value={
+                                                blockContent(
+                                                    block,
+                                                    activeLanguage,
+                                                ).text ?? ''
+                                            }
                                             placeholder="Optional intro text for this block."
                                             onChange={(event) =>
                                                 updateText(
@@ -705,7 +809,11 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                                         type="button"
                                     >
                                         <span className="truncate">
-                                            {index + 1}. {block.title}
+                                            {index + 1}.{' '}
+                                            {blockTitle(
+                                                block,
+                                                activeLanguage,
+                                            )}
                                         </span>
                                         {block.is_visible ? (
                                             <Eye className="h-4 w-4 text-emerald-600" />
