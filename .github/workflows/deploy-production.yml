@@ -58,7 +58,7 @@ jobs:
 
       - name: Sync files
         run: |
-          rsync -az --delete \
+          rsync -az --delete --omit-dir-times \
             --exclude='.git' \
             --exclude='.github' \
             --exclude='.env' \
