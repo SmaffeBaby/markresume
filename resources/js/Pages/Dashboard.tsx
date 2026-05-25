@@ -312,8 +312,8 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                             <Eye className="mr-2 h-4 w-4" />
                             Public view
                         </a>
-                        <Button onClick={save}>
-                            <Save className="mr-2 h-4 w-4" />
+                        <Button onClick={save} className='text-green-500'>
+                            <Save className="mr-2 h-4 w-4 text-green-500" />
                             Save
                         </Button>
                     </div>
@@ -683,8 +683,8 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                         </div>
 
                         <aside className="h-fit rounded-md border border-gray-200 bg-white p-4">
-                            <Button className="w-full" onClick={addBlock}>
-                                <Plus className="mr-2 h-4 w-4" />
+                            <Button className="w-full text-red-600" onClick={addBlock}>
+                                <Plus className="mr-2 h-4 w-4 text-red-600" />
                                 Add block
                             </Button>
                             <div className="mt-5 space-y-2 text-sm text-gray-600">
