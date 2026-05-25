@@ -21,10 +21,13 @@ import {
     Eye,
     EyeOff,
     GripVertical,
+    Image,
     Languages,
     Plus,
     Save,
     Trash2,
+    Upload,
+    X,
 } from 'lucide-react';
 import { DragEvent, useMemo, useState } from 'react';
 
@@ -68,6 +71,9 @@ const emptyExperienceItem = (): ExperienceItem => ({
     heading: '',
     meta: '',
     bullets: [''],
+    logo_url: '',
+    images: [],
+    website_url: '',
 });
 
 const titleKey = (language: ResumeLanguage) =>
@@ -104,6 +110,7 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
     const [activeLanguage, setActiveLanguage] =
         useState<ResumeLanguage>('en');
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+    const [uploadingKey, setUploadingKey] = useState<string | null>(null);
 
     const visibleCount = useMemo(
         () => items.filter((block) => block.is_visible).length,
@@ -248,6 +255,85 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                     : item,
             ),
         );
+    };
+
+    const uploadResumeAsset = async (file: File): Promise<string> => {
+        const formData = new FormData();
+        formData.append('asset', file);
+
+        const response = await window.axios.post<{ url: string }>(
+            route('resume.assets.store'),
+            formData,
+            {
+                headers: {
+                    'Content-Type': 'multipart/form-data',
+                },
+            },
+        );
+
+        return response.data.url;
+    };
+
+    const uploadExperienceLogo = async (
+        blockIndex: number,
+        itemIndex: number,
+        files: FileList | null,
+    ) => {
+        const file = files?.[0];
+
+        if (!file) {
+            return;
+        }
+
+        const key = `logo-${blockIndex}-${itemIndex}`;
+        setUploadingKey(key);
+
+        try {
+            const url = await uploadResumeAsset(file);
+            updateExperienceItem(blockIndex, itemIndex, { logo_url: url });
+        } finally {
+            setUploadingKey(null);
+        }
+    };
+
+    const uploadExperienceImages = async (
+        blockIndex: number,
+        itemIndex: number,
+        files: FileList | null,
+    ) => {
+        const selectedFiles = Array.from(files ?? []);
+
+        if (selectedFiles.length === 0) {
+            return;
+        }
+
+        const key = `images-${blockIndex}-${itemIndex}`;
+        setUploadingKey(key);
+
+        try {
+            const urls = await Promise.all(selectedFiles.map(uploadResumeAsset));
+            const currentItems = experienceItems(items[blockIndex]);
+            const currentImages = currentItems[itemIndex]?.images ?? [];
+
+            updateExperienceItem(blockIndex, itemIndex, {
+                images: [...currentImages, ...urls],
+            });
+        } finally {
+            setUploadingKey(null);
+        }
+    };
+
+    const removeExperienceImage = (
+        blockIndex: number,
+        itemIndex: number,
+        imageIndex: number,
+    ) => {
+        const currentItems = experienceItems(items[blockIndex]);
+        const currentImages = currentItems[itemIndex]?.images ?? [];
+
+        updateExperienceItem(blockIndex, itemIndex, {
+            images: currentImages.filter((_, index) => index !== imageIndex),
+        });
     };
 
     const addExperienceItem = (blockIndex: number) => {
@@ -712,6 +798,169 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
                                                             </Button>
+                                                        </div>
+
+                                                        <TextInput
+                                                            value={
+                                                                item.website_url ??
+                                                                ''
+                                                            }
+                                                            placeholder="Website URL"
+                                                            type="url"
+                                                            onChange={(
+                                                                event,
+                                                            ) =>
+                                                                updateExperienceItem(
+                                                                    index,
+                                                                    itemIndex,
+                                                                    {
+                                                                        website_url:
+                                                                            event
+                                                                                .target
+                                                                                .value,
+                                                                    },
+                                                                )
+                                                            }
+                                                        />
+
+                                                        <div className="grid gap-3 lg:grid-cols-[220px_minmax(0,1fr)]">
+                                                            <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+                                                                <Label>
+                                                                    Company logo
+                                                                </Label>
+                                                                <div className="mt-3 flex items-center gap-3">
+                                                                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-full border border-gray-200 bg-white">
+                                                                        {item.logo_url ? (
+                                                                            <img
+                                                                                alt=""
+                                                                                className="h-full w-full object-cover"
+                                                                                src={
+                                                                                    item.logo_url
+                                                                                }
+                                                                            />
+                                                                        ) : (
+                                                                            <Image className="h-5 w-5 text-gray-400" />
+                                                                        )}
+                                                                    </div>
+                                                                    <div className="min-w-0 flex-1">
+                                                                        <label className="inline-flex cursor-pointer items-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
+                                                                            <Upload className="mr-2 h-4 w-4" />
+                                                                            {uploadingKey ===
+                                                                            `logo-${index}-${itemIndex}`
+                                                                                ? 'Uploading'
+                                                                                : 'Upload'}
+                                                                            <input
+                                                                                accept="image/*"
+                                                                                className="sr-only"
+                                                                                type="file"
+                                                                                onChange={(
+                                                                                    event,
+                                                                                ) =>
+                                                                                    uploadExperienceLogo(
+                                                                                        index,
+                                                                                        itemIndex,
+                                                                                        event
+                                                                                            .target
+                                                                                            .files,
+                                                                                    )
+                                                                                }
+                                                                            />
+                                                                        </label>
+                                                                        {item.logo_url && (
+                                                                            <Button
+                                                                                color="light"
+                                                                                size="xs"
+                                                                                className="mt-2"
+                                                                                onClick={() =>
+                                                                                    updateExperienceItem(
+                                                                                        index,
+                                                                                        itemIndex,
+                                                                                        {
+                                                                                            logo_url:
+                                                                                                '',
+                                                                                        },
+                                                                                    )
+                                                                                }
+                                                                            >
+                                                                                <X className="mr-1 h-4 w-4" />
+                                                                                Remove
+                                                                            </Button>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+
+                                                            <div className="rounded-md border border-gray-200 bg-gray-50 p-3">
+                                                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                                                    <Label>
+                                                                        Gallery
+                                                                    </Label>
+                                                                    <label className="inline-flex cursor-pointer items-center rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-900 hover:bg-gray-100">
+                                                                        <Upload className="mr-2 h-4 w-4" />
+                                                                        {uploadingKey ===
+                                                                        `images-${index}-${itemIndex}`
+                                                                            ? 'Uploading'
+                                                                            : 'Add images'}
+                                                                        <input
+                                                                            accept="image/*"
+                                                                            className="sr-only"
+                                                                            multiple
+                                                                            type="file"
+                                                                            onChange={(
+                                                                                event,
+                                                                            ) =>
+                                                                                uploadExperienceImages(
+                                                                                    index,
+                                                                                    itemIndex,
+                                                                                    event
+                                                                                        .target
+                                                                                        .files,
+                                                                                )
+                                                                            }
+                                                                        />
+                                                                    </label>
+                                                                </div>
+
+                                                                {(item.images
+                                                                    ?.length ??
+                                                                    0) > 0 && (
+                                                                    <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-4">
+                                                                        {item.images?.map(
+                                                                            (
+                                                                                image,
+                                                                                imageIndex,
+                                                                            ) => (
+                                                                                <div
+                                                                                    className="group relative overflow-hidden rounded-md border border-gray-200 bg-white"
+                                                                                    key={`${image}-${imageIndex}`}
+                                                                                >
+                                                                                    <img
+                                                                                        alt=""
+                                                                                        className="h-20 w-full object-cover"
+                                                                                        src={
+                                                                                            image
+                                                                                        }
+                                                                                    />
+                                                                                    <button
+                                                                                        aria-label="Remove image"
+                                                                                        className="absolute right-1 top-1 inline-flex h-7 w-7 items-center justify-center rounded-full bg-white/90 text-gray-700 shadow-sm hover:bg-white"
+                                                                                        onClick={() =>
+                                                                                            removeExperienceImage(
+                                                                                                index,
+                                                                                                itemIndex,
+                                                                                                imageIndex,
+                                                                                            )
+                                                                                        }
+                                                                                        type="button"
+                                                                                    >
+                                                                                        <X className="h-4 w-4" />
+                                                                                    </button>
+                                                                                </div>
+                                                                            ),
+                                                                        )}
+                                                                    </div>
+                                                                )}
+                                                            </div>
                                                         </div>
 
                                                         <div className="space-y-2">

@@ -6,6 +6,7 @@ use App\Models\ResumeBlock;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -72,6 +73,19 @@ class ResumeController extends Controller
         });
 
         return back()->with('status', 'resume-saved');
+    }
+
+    public function storeAsset(Request $request): JsonResponse
+    {
+        $validated = $request->validate([
+            'asset' => ['required', 'image', 'max:5120'],
+        ]);
+
+        $path = $validated['asset']->store('resume-assets', 'public');
+
+        return response()->json([
+            'url' => "/storage/{$path}",
+        ]);
     }
 
     public function show(): Response

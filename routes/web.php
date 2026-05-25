@@ -25,6 +25,7 @@ Route::get('/dashboard', [ResumeController::class, 'edit'])
 
 Route::middleware(['auth', 'admin'])->group(function () {
     Route::put('/resume', [ResumeController::class, 'update'])->name('resume.update');
+    Route::post('/resume/assets', [ResumeController::class, 'storeAsset'])->name('resume.assets.store');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');

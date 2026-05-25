@@ -15,6 +15,9 @@ export type ExperienceItem = {
     heading: string;
     meta: string;
     bullets: string[];
+    logo_url?: string;
+    images?: string[];
+    website_url?: string;
 };
 
 export type ResumeBlockContent = {
