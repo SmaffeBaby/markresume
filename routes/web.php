@@ -6,7 +6,9 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/', [ResumeController::class, 'show'])->name('resume.public');
+Route::redirect('/', '/resume');
+
+Route::get('/resume', [ResumeController::class, 'show'])->name('resume.public');
 
 Route::get('/welcome', function () {
     return Inertia::render('Welcome', [
