@@ -1,0 +1,275 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- 2026-05-22 Fri -->
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Mark Andreev</title>
+<meta name="generator" content="Codex / Org-style HTML" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible&family=Public+Sans:wght@400;700&display=swap');
+
+:root {
+    --bg: #EEEEEE;
+    --fg: #0A0A0A;
+    --fg-secondary: #353535;
+    --blue: blue;
+    --red: #dc2626;
+    --green: #16a34a;
+    --yellow: #ca8a04;
+    --font-main: 'Atkinson Hyperlegible', sans-serif;
+}
+
+[data-theme='dark'] {
+    --bg: #0A0A0A;
+    --fg: #EEEEEE;
+    --fg-secondary: #B0B0B0;
+    --blue: #5C9CF5;
+    --red: #f87171;
+    --green: #22c55e;
+    --yellow: #eab308;
+}
+
+@media print {
+    button { display: none !important; }
+    a { text-decoration: none; }
+}
+
+* { box-sizing: border-box; }
+
+body {
+    background-color: var(--bg);
+    color: var(--fg);
+    transition: background-color 0.3s, color 0.3s;
+    font-family: var(--font-main);
+    -webkit-font-smoothing: antialiased;
+    line-height: 1.45;
+}
+
+.content {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 1.2rem;
+}
+
+a {
+    color: var(--blue);
+    transition: background-color 0.6s, color 0.6s;
+    padding: 0.1em 0.3em;
+}
+
+table, th, td {
+    border: 1px solid var(--fg-secondary);
+    border-collapse: collapse;
+    text-align: left;
+    padding: 0.1em 0.3em;
+    vertical-align: top;
+}
+
+table { margin: 1em 0em; }
+
+.tag {
+    background-color: color-mix(in srgb, var(--fg), transparent 95%);
+    padding: 0 0.2em;
+}
+
+.theme-toggle {
+    border: none;
+    background: none;
+    outline: none;
+    float: right;
+    cursor: pointer;
+}
+
+.theme-toggle:hover { opacity: 0.8; }
+
+h1, h2, h3 { line-height: 1.15; }
+h1.title { margin-bottom: 0.4em; }
+h2 { margin-top: 1.4em; }
+h3 { margin-top: 1.1em; }
+code { color: var(--fg); }
+ul { padding-left: 1.4em; }
+li { margin: 0.25em 0; }
+</style>
+<script>
+function toggleTheme() {
+    const current = document.documentElement.getAttribute('data-theme');
+    const next = current === 'dark' ? 'light' : 'dark';
+    document.documentElement.setAttribute('data-theme', next);
+    localStorage.setItem('theme', next);
+}
+
+const savedTheme = localStorage.getItem('theme');
+if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
+</script>
+</head>
+<body>
+<div id="preamble" class="status">
+<button onclick="toggleTheme()" class="theme-toggle" aria-label="Toggle theme">🌓</button>
+</div>
+<div id="content" class="content">
+<header>
+<h1 class="title">Mark Andreev</h1>
+</header>
+<table>
+<colgroup>
+<col class="org-left">
+<col class="org-left">
+</colgroup>
+<tbody>
+
+<tr>
+    <td class="org-left"><a href="mailto:andre3v.mark@yandex.ru">mark230602@gmail.com</a></td>
+<td class="org-left"><a href="https://t.me/Smaffe">Telegram</a></td>
+<td class="org-left"><a href="https://github.com/SmaffeBaby">GitHub</a></td>
+</tr>
+</tbody>
+</table>
+
+<div id="outline-container-summary" class="outline-2">
+<h2 id="summary"><span class="section-number-2">1.</span> Summary</h2>
+<div class="outline-text-2" id="text-1">
+<p>Senior frontend-heavy fullstack engineer with 4+ years of commercial experience building production SPA/SSR products, API-driven dashboards, CRM systems, CRM workflows, e-commerce automation, sports analytics platforms, and legacy migration initiatives. Comfortable owning the product path end-to-end: requirements clarification, frontend/backend architecture, stakeholder communication, and release support.
+</p>
+</div>
+</div>
+
+<div id="outline-container-skills" class="outline-2">
+<h2 id="skills"><span class="section-number-2">2.</span> Skills</h2>
+<div class="outline-text-2" id="text-2">
+<table>
+<colgroup>
+<col class="org-left">
+<col class="org-left">
+</colgroup>
+<tbody>
+<tr>
+<td class="org-left"><b>Frontend</b></td>
+<td class="org-left">React, Vue.js, TypeScript, TailwindCSS</td>
+</tr>
+<tr>
+<td class="org-left"><b>State &amp; Data</b></td>
+<td class="org-left">Zustand, Pinia, TanStack Query</td>
+</tr>
+<tr>
+<td class="org-left"><b>Backend</b></td>
+<td class="org-left">Express.js, FastAPI, PHP</td>
+</tr>
+<tr>
+<td class="org-left"><b>Databases</b></td>
+<td class="org-left">PostgreSQL, Supabase, MySQL, Redis</td>
+</tr>
+<!--<tr>-->
+<!--&lt;!&ndash; TODO: Merge with the initial paragraph  &ndash;&gt;-->
+<!--<td class="org-left"><b>Business</b></td>-->
+<!--<td class="org-left">CRM workflows, e-commerce automation, sports analytics, legacy migration, stakeholder communication</td>-->
+<!--</tr>-->
+</tbody>
+</table>
+</div>
+</div>
+
+<div id="outline-container-experience" class="outline-2">
+<h2 id="experience"><span class="section-number-2">3.</span> Experience</h2>
+<div class="outline-text-2" id="text-3">
+</div>
+
+<div id="outline-container-nba" class="outline-3">
+<h3 id="nba"><span class="section-number-3">3.1.</span> NBA Analytics Platform — Fullstack Engineer</h3>
+<div class="outline-text-3" id="text-3-1">
+<ul class="org-ul">
+<li><b><b>Dates:</b></b> Mar 2026 – Present</li>
+<!--<li><b><b>Stack:</b></b> Vue 3, TypeScript, Vite, TailwindCSS, Pinia, TanStack Vue Query, Express.js, FastAPI, nba_api, Supabase/PostgreSQL, Docker</li>-->
+<li>Built a fullstack NBA analytics platform with live games, standings, playoff brackets, box scores, player/team pages, news, profiles, favorites, and discussions.</li>
+<li>Developed a Vue + TypeScript + Vite frontend with reusable composables and route-level views for stats, game details, team analytics, playoffs, and public profiles.</li>
+<li>Designed the data layer around an Express API gateway and FastAPI service using <code>nba_api</code>, normalizing NBA responses into stable UI models.</li>
+<li>Implemented multi-layer caching, Supabase/PostgreSQL social features, RLS-backed admin workflows, and Docker Compose setup for the full local stack.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-keys" class="outline-3">
+<h3 id="keys"><span class="section-number-3">3.2.</span> Digital Key Management Platform to Plati.ru — Fullstack Engineer</h3>
+<div class="outline-text-3" id="text-3-2">
+<ul class="org-ul">
+<li><b><b>Dates:</b></b> Apr 2026 – May 2026</li>
+<!--<li><b><b>Stack:</b></b> React, TypeScript, Vite, React Router, TanStack Query, Zustand, TailwindCSS, Consta UI, Flowbite React, Chart.js, D3, Supabase/PostgreSQL, Docker</li>-->
+<li>Built an internal order-management dashboard for Plati.ru digital goods operations, covering orders, products, buyers, finances, profiles, and ru/en workflows.</li>
+<li>Developed a React + TypeScript + Vite with route-level pages, reusable components, custom business hooks, and a typed Supabase REST/Auth service layer.</li>
+<li>Implemented order and catalog workflows with inline editing, drafts, filtering, sorting, pagination, status handling, stock validation, and TanStack Query cache updates.</li>
+<li>Modeled Supabase/PostgreSQL auth/RLS data and added buyer/finance analytics, product history charts, D3 relationship graphs, and Dockerized deployment.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-fullstack-2025" class="outline-3">
+<h3 id="fullstack-2025"><span class="section-number-3">3.3.</span> Gazprom Product Development Projects — Frontend / Fullstack Developer</h3>
+<div class="outline-text-3" id="text-3-3">
+<ul class="org-ul">
+<li><b><b>Dates:</b></b> 2025 – 2026</li>
+<!--<li><b><b>Stack:</b></b> Vue.js, TypeScript, Vite, Pinia, TanStack Query, TailwindCSS, REST API, Node.js/PHP, PostgreSQL/MySQL, Docker</li>-->
+<li>Developed Vue-based internal products for Gazprom, including a voluntary medical insurance system for doctors, meeting-room booking tools, and department-specific web portals.</li>
+<li>Built interfaces with Vue + TypeScript + Vite, reusable components, and composable business logic for form-heavy workflows, schedules, status screens, and role-oriented dashboards.</li>
+<li>Designed frontend data flows around REST APIs, query caching, validation, loading/error states, and PostgreSQL/MySQL-backed operational services.</li>
+<li>Improved booking, request, profile, and approval flows while supporting Docker-based local environments and legacy modules across several products.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-fullstack-2024" class="outline-3">
+<h3 id="fullstack-2024"><span class="section-number-3">3.4.</span> Indian "Trado" Commercial Web &amp; CRM Products — Frontend / Fullstack Developer</h3>
+<div class="outline-text-3" id="text-3-4">
+<ul class="org-ul">
+<li><b><b>Dates:</b></b> 2024 – 2025</li>
+<!--<li><b><b>Stack:</b></b> React, Vue.js, TypeScript, TailwindCSS, REST API, Node.js/PHP, MySQL/PostgreSQL, Docker</li>-->
+<li>Developed commercial e-commerce and CRM products for Trado, covering orders, product catalogs, customer records, inventory views, and operational reporting.</li>
+<li>Built production React + TypeScript + Vite modules with reusable UI components and form-heavy workflows for sales and fulfillment teams.</li>
+<li>Implemented order and catalog flows with filtering, sorting, pagination, status handling, validation, editable tables, and normalized REST API data.</li>
+<li>Added analytics views for customers, products, revenue, stock, and repeat purchases while contributing PHP backend functionality and Docker setup support.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-pride" class="outline-3">
+<h3 id="pride"><span class="section-number-3">3.5.</span> Pride Group — Frontend / Fullstack Developer</h3>
+<div class="outline-text-3" id="text-3-5">
+<ul class="org-ul">
+<li><b><b>Dates:</b></b> Jul 2021 – Jul 2024</li>
+<!--<li><b><b>Stack:</b></b> React, JavaScript, TypeScript, TailwindCSS, PHP, Drupal, Bitrix, Bitrix24 API, MySQL</li>-->
+<li>Built and maintained real-estate web products and CRM-connected workflows for Pride Group, working across React frontend modules and PHP CMS backends.</li>
+<li>Developed catalog interfaces for large residential-complex and housing datasets, supporting more than 70,000 real-estate objects with search, filters, sorting, and detail pages.</li>
+<li>Integrated website and internal workflows with Bitrix24, connecting lead forms, CRM entities, contact/order-style records, and operational status updates.</li>
+<li>Implemented reusable React components, optimized data-heavy catalog rendering, and modernized PHP/Drupal/Bitrix/MySQL modules without disrupting CRM integrations.</li>
+</ul>
+</div>
+</div>
+</div>
+
+<div id="outline-container-projects" class="outline-2">
+<h2 id="projects"><span class="section-number-2">4.</span> Selected Projects</h2>
+<div class="outline-text-2" id="text-4">
+<ul class="org-ul">
+<li><b><b>NBA Analytics Platform:</b></b> Vue sports analytics product with Express + FastAPI data services, nba.com/nba_api integrations, Supabase/PostgreSQL social features, cached statistics, and Dockerized deployment.</li>
+<li><b><b>Digital Key Management Platform:</b></b> React order and inventory dashboard for digital goods operations with Supabase/PostgreSQL auth/RLS, buyer and finance analytics, product history, D3 relationship graphs, and Dockerized deployment.</li>
+<li><b><b>CRM / Operational Interfaces:</b></b> Internal Vue systems and e-commerce/CRM dashboards for booking, medical insurance, orders, catalogs, customers, stock, revenue, and repeated business workflows.</li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-education" class="outline-2">
+<h2 id="education"><span class="section-number-2">5.</span> Education</h2>
+<div class="outline-text-2" id="text-5">
+<ul class="org-ul">
+<li>St. Petersburg, Admiral S.O. Makarov State University of Maritime and River Fleet
+    ,Applied Informatics(2020-2024)</li>
+</ul>
+</div>
+</div>
+</div>
+<div id="postamble" class="status">
+<p class="date">Created: 2026-05-22 Fri</p>
+</div>
+</body>
+</html>
