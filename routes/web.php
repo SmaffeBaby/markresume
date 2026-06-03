@@ -24,6 +24,7 @@ Route::get('/dashboard', [ResumeController::class, 'edit'])
     ->name('dashboard');
 
 Route::middleware(['auth', 'admin'])->group(function () {
+    Route::get('/resume/pdf', [ResumeController::class, 'downloadPdf'])->name('resume.pdf');
     Route::put('/resume', [ResumeController::class, 'update'])->name('resume.update');
     Route::post('/resume/assets', [ResumeController::class, 'storeAsset'])->name('resume.assets.store');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');

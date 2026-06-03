@@ -19,6 +19,8 @@ import { useEffect, useState } from 'react';
 
 type PublicResumeProps = {
     blocks: ResumeBlock[];
+    initialLanguage?: ResumeLanguage;
+    isPdf?: boolean;
 };
 
 const isExperienceItem = (
@@ -101,7 +103,13 @@ function LanguageBadge({
     );
 }
 
-function ExperienceGallery({ item }: { item: ExperienceItem }) {
+function ExperienceGallery({
+    item,
+    isPdf = false,
+}: {
+    item: ExperienceItem;
+    isPdf?: boolean;
+}) {
     const images = item.images?.filter(Boolean) ?? [];
     const [activeIndex, setActiveIndex] = useState(0);
     const [isPreviewOpen, setIsPreviewOpen] = useState(false);
@@ -130,7 +138,7 @@ function ExperienceGallery({ item }: { item: ExperienceItem }) {
                     <img
                         alt={`${item.heading} image ${activeIndex + 1}`}
                         className="h-full w-full object-contain"
-                        loading="lazy"
+                        loading={isPdf ? 'eager' : 'lazy'}
                         src={images[activeIndex]}
                     />
                 </button>
@@ -175,7 +183,7 @@ function ExperienceGallery({ item }: { item: ExperienceItem }) {
                             <img
                                 alt=""
                                 className="h-full w-full object-cover"
-                                loading="lazy"
+                                loading={isPdf ? 'eager' : 'lazy'}
                                 src={image}
                             />
                         </button>
@@ -258,7 +266,13 @@ function ExperienceGallery({ item }: { item: ExperienceItem }) {
     );
 }
 
-function ExperienceArticle({ item }: { item: ExperienceItem }) {
+function ExperienceArticle({
+    item,
+    isPdf = false,
+}: {
+    item: ExperienceItem;
+    isPdf?: boolean;
+}) {
     const [isOpen, setIsOpen] = useState(true);
     const websiteUrl = item.website_url?.trim();
 
@@ -269,7 +283,7 @@ function ExperienceArticle({ item }: { item: ExperienceItem }) {
                     <img
                         alt=""
                         className="h-full w-full object-cover"
-                        loading="lazy"
+                        loading={isPdf ? 'eager' : 'lazy'}
                         src={item.logo_url}
                     />
                 ) : (
@@ -319,7 +333,7 @@ function ExperienceArticle({ item }: { item: ExperienceItem }) {
                                 <li key={bullet}>{bullet}</li>
                             ))}
                         </ul>
-                        <ExperienceGallery item={item} />
+                        <ExperienceGallery item={item} isPdf={isPdf} />
                     </div>
                 )}
             </div>
@@ -330,9 +344,11 @@ function ExperienceArticle({ item }: { item: ExperienceItem }) {
 function BlockContent({
     block,
     language,
+    isPdf = false,
 }: {
     block: ResumeBlock;
     language: ResumeLanguage;
+    isPdf?: boolean;
 }) {
     const content = blockContent(block, language);
 
@@ -346,7 +362,11 @@ function BlockContent({
 
             {content.items?.map((item, index) =>
                 isExperienceItem(item) ? (
-                    <ExperienceArticle item={item} key={index} />
+                    <ExperienceArticle
+                        item={item}
+                        isPdf={isPdf}
+                        key={index}
+                    />
                 ) : (
                     <div
                         key={index}
@@ -361,20 +381,32 @@ function BlockContent({
     );
 }
 
-export default function PublicResume({ blocks }: PublicResumeProps) {
-    const [language, setLanguage] = useState<ResumeLanguage>('en');
+export default function PublicResume({
+    blocks,
+    initialLanguage = 'en',
+    isPdf = false,
+}: PublicResumeProps) {
+    const [language, setLanguage] =
+        useState<ResumeLanguage>(initialLanguage);
 
     useEffect(() => {
+        if (isPdf) {
+            return;
+        }
+
         const storedLanguage = window.localStorage.getItem('resume-language');
 
         if (storedLanguage === 'en' || storedLanguage === 'ru') {
             setLanguage(storedLanguage);
         }
-    }, []);
+    }, [isPdf]);
 
     const changeLanguage = (nextLanguage: ResumeLanguage) => {
         setLanguage(nextLanguage);
-        window.localStorage.setItem('resume-language', nextLanguage);
+
+        if (!isPdf) {
+            window.localStorage.setItem('resume-language', nextLanguage);
+        }
     };
 
     return (
@@ -411,10 +443,12 @@ export default function PublicResume({ blocks }: PublicResumeProps) {
                             </a>
                         </div>
                     </div>
-                    <LanguageBadge
-                        language={language}
-                        onChange={changeLanguage}
-                    />
+                    {!isPdf && (
+                        <LanguageBadge
+                            language={language}
+                            onChange={changeLanguage}
+                        />
+                    )}
                 </header>
 
                 {blocks.length === 0 ? (
@@ -444,6 +478,7 @@ export default function PublicResume({ blocks }: PublicResumeProps) {
                                 <BlockContent
                                     block={block}
                                     language={language}
+                                    isPdf={isPdf}
                                 />
                             </section>
                         ))}

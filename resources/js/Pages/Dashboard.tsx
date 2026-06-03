@@ -18,6 +18,7 @@ import {
     ToggleSwitch,
 } from 'flowbite-react';
 import {
+    Download,
     Eye,
     EyeOff,
     GripVertical,
@@ -91,9 +92,10 @@ const blockContent = (block: ResumeBlock, language: ResumeLanguage) =>
 type DashboardProps = {
     blocks: ResumeBlock[];
     publicUrl: string;
+    pdfUrl: string;
 };
 
-export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
+export default function Dashboard({ blocks, publicUrl, pdfUrl }: DashboardProps) {
     const { flash } = usePage().props as unknown as {
         flash?: { status?: string };
     };
@@ -109,6 +111,7 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
     );
     const [activeLanguage, setActiveLanguage] =
         useState<ResumeLanguage>('en');
+    const [pdfLanguage, setPdfLanguage] = useState<ResumeLanguage>('en');
     const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
     const [uploadingKey, setUploadingKey] = useState<string | null>(null);
 
@@ -484,6 +487,37 @@ export default function Dashboard({ blocks, publicUrl }: DashboardProps) {
                             <Eye className="mr-2 h-4 w-4" />
                             Public view
                         </a>
+                        <div className="inline-flex items-center overflow-hidden rounded-lg border border-gray-200 bg-white">
+                            <label className="sr-only" htmlFor="pdf-language">
+                                PDF language
+                            </label>
+                            <select
+                                className="h-10 border-0 bg-white pl-3 pr-8 text-sm font-semibold text-gray-700 focus:ring-0"
+                                id="pdf-language"
+                                value={pdfLanguage}
+                                onChange={(event) =>
+                                    setPdfLanguage(
+                                        event.target.value as ResumeLanguage,
+                                    )
+                                }
+                            >
+                                {languages.map((language) => (
+                                    <option
+                                        key={language.value}
+                                        value={language.value}
+                                    >
+                                        {language.label}
+                                    </option>
+                                ))}
+                            </select>
+                            <a
+                                className="inline-flex h-10 items-center border-l border-gray-200 px-4 text-sm font-medium text-gray-900 transition hover:bg-gray-100"
+                                href={`${pdfUrl}?language=${pdfLanguage}`}
+                            >
+                                <Download className="mr-2 h-4 w-4" />
+                                Download PDF
+                            </a>
+                        </div>
                         <Button onClick={save} className='text-green-500'>
                             <Save className="mr-2 h-4 w-4 text-green-500" />
                             Save

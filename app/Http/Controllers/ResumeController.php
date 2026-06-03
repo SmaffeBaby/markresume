@@ -4,12 +4,15 @@ namespace App\Http\Controllers;
 
 use App\Models\ResumeBlock;
 use App\Models\User;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Http\JsonResponse;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Browsershot\Browsershot;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\Process\Process;
 
 class ResumeController extends Controller
 {
@@ -24,6 +27,7 @@ class ResumeController extends Controller
         return Inertia::render('Dashboard', [
             'blocks' => $this->localizedBlocks($user->resumeBlocks()->get()),
             'publicUrl' => route('resume.public'),
+            'pdfUrl' => route('resume.pdf'),
         ]);
     }
 
@@ -88,15 +92,55 @@ class ResumeController extends Controller
         ]);
     }
 
-    public function show(): Response
+    public function show(Request $request): Response
     {
         $user = User::query()->whereHas('resumeBlocks')->oldest()->first();
+        $language = $this->validatedLanguage($request);
 
         return Inertia::render('PublicResume', [
             'blocks' => $user
                 ? $this->localizedBlocks($user->resumeBlocks()->where('is_visible', true)->get())
                 : [],
+            'initialLanguage' => $language,
+            'isPdf' => $request->boolean('pdf'),
         ]);
+    }
+
+    public function downloadPdf(Request $request): StreamedResponse
+    {
+        set_time_limit(120);
+
+        $language = $this->validatedLanguage($request);
+        $server = $this->startPdfServer();
+
+        try {
+            $url = "http://127.0.0.1:{$server['port']}/resume?".http_build_query([
+                'language' => $language,
+                'pdf' => 1,
+            ]);
+
+            $pdf = Browsershot::url($url)
+                ->showBackground()
+                ->format('A4')
+                ->margins(8, 8, 8, 8)
+                ->noSandbox()
+                ->timeout(120)
+                ->waitUntilNetworkIdle()
+                ->setNodeBinary('/opt/homebrew/bin/node')
+                ->setNpmBinary('/opt/homebrew/bin/npm')
+                ->setChromePath($this->chromePath())
+                ->pdf();
+        } finally {
+            $server['process']->stop();
+        }
+
+        $filename = "mark-andreev-resume-{$language}.pdf";
+
+        return response()->streamDownload(
+            fn () => print ($pdf),
+            $filename,
+            ['Content-Type' => 'application/pdf'],
+        );
     }
 
     private function localizedBlocks($blocks)
@@ -113,6 +157,78 @@ class ResumeController extends Controller
             'position' => $block->position,
             'is_visible' => $block->is_visible,
         ]);
+    }
+
+    private function validatedLanguage(Request $request): string
+    {
+        return $request->query('language') === 'ru' ? 'ru' : 'en';
+    }
+
+    private function chromePath(): string
+    {
+        $macChromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+
+        return file_exists($macChromePath) ? $macChromePath : 'google-chrome';
+    }
+
+    private function startPdfServer(): array
+    {
+        $port = $this->freePort();
+        $server = base_path('server.php');
+
+        if (! file_exists($server)) {
+            $server = base_path('vendor/laravel/framework/src/Illuminate/Foundation/resources/server.php');
+        }
+
+        $process = new Process([
+            PHP_BINARY,
+            '-S',
+            "127.0.0.1:{$port}",
+            $server,
+        ], public_path());
+
+        $process->setTimeout(120);
+        $process->start();
+
+        $this->waitForPdfServer($port);
+
+        return [
+            'port' => $port,
+            'process' => $process,
+        ];
+    }
+
+    private function freePort(): int
+    {
+        $socket = stream_socket_server('tcp://127.0.0.1:0');
+
+        if (! $socket) {
+            throw new \RuntimeException('Could not reserve a local port for PDF rendering.');
+        }
+
+        $name = stream_socket_get_name($socket, false);
+        fclose($socket);
+
+        return (int) substr(strrchr($name, ':'), 1);
+    }
+
+    private function waitForPdfServer(int $port): void
+    {
+        $deadline = microtime(true) + 5;
+
+        do {
+            $connection = @fsockopen('127.0.0.1', $port, $errorCode, $errorMessage, 0.1);
+
+            if ($connection) {
+                fclose($connection);
+
+                return;
+            }
+
+            usleep(50_000);
+        } while (microtime(true) < $deadline);
+
+        throw new \RuntimeException('PDF rendering server did not start in time.');
     }
 
     private function createDefaultBlocks(User $user): void
