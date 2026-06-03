@@ -108,30 +108,25 @@ class ResumeController extends Controller
 
     public function downloadPdf(Request $request): StreamedResponse
     {
-        set_time_limit(120);
+        $timeout = (int) config('resume.pdf.timeout', 120);
+        set_time_limit($timeout);
 
         $language = $this->validatedLanguage($request);
-        $server = $this->startPdfServer();
+        $server = null;
 
         try {
-            $url = "http://127.0.0.1:{$server['port']}/resume?".http_build_query([
-                'language' => $language,
-                'pdf' => 1,
-            ]);
+            if (config('resume.pdf.use_internal_server')) {
+                $server = $this->startPdfServer();
+            }
 
-            $pdf = Browsershot::url($url)
-                ->showBackground()
-                ->format('A4')
-                ->margins(8, 8, 8, 8)
-                ->noSandbox()
-                ->timeout(120)
-                ->waitUntilNetworkIdle()
-                ->setNodeBinary('/opt/homebrew/bin/node')
-                ->setNpmBinary('/opt/homebrew/bin/npm')
-                ->setChromePath($this->chromePath())
-                ->pdf();
+            $pdf = $this->pdfRenderer(
+                $this->pdfUrl($language, $server['port'] ?? null),
+                $timeout,
+            )->pdf();
         } finally {
-            $server['process']->stop();
+            if ($server) {
+                $server['process']->stop();
+            }
         }
 
         $filename = "mark-andreev-resume-{$language}.pdf";
@@ -166,9 +161,69 @@ class ResumeController extends Controller
 
     private function chromePath(): string
     {
-        $macChromePath = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
+        $configuredPath = config('resume.pdf.chrome_path');
 
-        return file_exists($macChromePath) ? $macChromePath : 'google-chrome';
+        if (is_string($configuredPath) && $configuredPath !== '') {
+            return $configuredPath;
+        }
+
+        $candidates = [
+            '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
+            '/usr/bin/google-chrome-stable',
+            '/usr/bin/google-chrome',
+            '/usr/bin/chromium',
+            '/usr/bin/chromium-browser',
+        ];
+
+        foreach ($candidates as $path) {
+            if (file_exists($path)) {
+                return $path;
+            }
+        }
+
+        return 'google-chrome';
+    }
+
+    private function pdfUrl(string $language, ?int $port): string
+    {
+        $query = http_build_query([
+            'language' => $language,
+            'pdf' => 1,
+        ]);
+
+        if ($port) {
+            return "http://127.0.0.1:{$port}/resume?{$query}";
+        }
+
+        return route('resume.public', [
+            'language' => $language,
+            'pdf' => 1,
+        ]);
+    }
+
+    private function pdfRenderer(string $url, int $timeout): Browsershot
+    {
+        $renderer = Browsershot::url($url)
+            ->showBackground()
+            ->format('A4')
+            ->margins(8, 8, 8, 8)
+            ->noSandbox()
+            ->timeout($timeout)
+            ->waitUntilNetworkIdle()
+            ->setChromePath($this->chromePath());
+
+        $nodeBinary = config('resume.pdf.node_binary');
+        $npmBinary = config('resume.pdf.npm_binary');
+
+        if (is_string($nodeBinary) && $nodeBinary !== '') {
+            $renderer->setNodeBinary($nodeBinary);
+        }
+
+        if (is_string($npmBinary) && $npmBinary !== '') {
+            $renderer->setNpmBinary($npmBinary);
+        }
+
+        return $renderer;
     }
 
     private function startPdfServer(): array
