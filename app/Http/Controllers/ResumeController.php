@@ -203,6 +203,8 @@ class ResumeController extends Controller
 
     private function pdfRenderer(string $url, int $timeout): Browsershot
     {
+        $runtimePath = $this->pdfRuntimePath();
+
         $renderer = Browsershot::url($url)
             ->showBackground()
             ->format('A4')
@@ -210,7 +212,23 @@ class ResumeController extends Controller
             ->noSandbox()
             ->timeout($timeout)
             ->waitUntilNetworkIdle()
-            ->setChromePath($this->chromePath());
+            ->setChromePath($this->chromePath())
+            ->userDataDir("{$runtimePath}/user-data")
+            ->addChromiumArguments([
+                'disable-crash-reporter',
+                'disable-crashpad',
+                'disable-dev-shm-usage',
+                'disable-gpu',
+                'no-default-browser-check',
+                'no-first-run',
+                'disk-cache-dir' => "{$runtimePath}/cache",
+            ])
+            ->setEnvironmentOptions([
+                'HOME' => "{$runtimePath}/home",
+                'XDG_CACHE_HOME' => "{$runtimePath}/cache",
+                'XDG_CONFIG_HOME' => "{$runtimePath}/config",
+                'XDG_DATA_HOME' => "{$runtimePath}/data",
+            ]);
 
         $nodeBinary = config('resume.pdf.node_binary');
         $npmBinary = config('resume.pdf.npm_binary');
@@ -224,6 +242,21 @@ class ResumeController extends Controller
         }
 
         return $renderer;
+    }
+
+    private function pdfRuntimePath(): string
+    {
+        $path = storage_path('app/browsershot');
+
+        foreach (['cache', 'config', 'data', 'home', 'user-data'] as $directory) {
+            $fullPath = "{$path}/{$directory}";
+
+            if (! is_dir($fullPath)) {
+                mkdir($fullPath, 0775, true);
+            }
+        }
+
+        return $path;
     }
 
     private function startPdfServer(): array
